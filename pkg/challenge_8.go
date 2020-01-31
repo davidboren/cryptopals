@@ -1,4 +1,4 @@
-package set1
+package cryptopals
 
 import (
 	"fmt"
@@ -71,6 +71,22 @@ func blocksEqual(b1 []byte, b2 []byte) bool {
 	return allEqual
 }
 
+func getDupCount(b []byte, blockSize int) int {
+	count := 0
+	totBlocks := int(len(b) / blockSize)
+	for i := 0; i < totBlocks-1; i++ {
+		block := b[i*blockSize : (i+1)*blockSize]
+		for j := i + 1; j < totBlocks; j++ {
+			compBlock := b[j*blockSize : (j+1)*blockSize]
+			if blocksEqual(block, compBlock) {
+				count++
+			}
+
+		}
+	}
+	return count
+}
+
 func countDupBlocks(arr [][]byte, blockSize int) []int {
 	dupCounts := make([]int, len(arr))
 	for l, b := range arr {
@@ -78,18 +94,7 @@ func countDupBlocks(arr [][]byte, blockSize int) []int {
 			panic(fmt.Errorf("Line number '%v' does has numBytes '%v', which is not a multiple of blockSize '%v'", l, len(b), blockSize))
 
 		}
-		dupCounts[l] = 0
-		totBlocks := int(len(b) / blockSize)
-		for i := 0; i < totBlocks-1; i++ {
-			block := b[i*blockSize : (i+1)*blockSize]
-			for j := i; j < totBlocks; j++ {
-				compBlock := b[j*blockSize : (j+1)*blockSize]
-				if blocksEqual(block, compBlock) {
-					dupCounts[l]++
-				}
-
-			}
-		}
+		dupCounts[l] = getDupCount(b, blockSize)
 	}
 	return dupCounts
 

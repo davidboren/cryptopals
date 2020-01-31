@@ -1,4 +1,4 @@
-package set1
+package cryptopals
 
 import (
 	"bufio"
@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// FileToArray produces an array of strings from a filepath
 func FileToArray(filePath string) []string {
 	file, err := os.Open(filePath)
 	if err != nil {

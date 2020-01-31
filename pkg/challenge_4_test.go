@@ -1,4 +1,4 @@
-package set1
+package cryptopals
 
 import (
 	"github.com/stretchr/testify/assert"

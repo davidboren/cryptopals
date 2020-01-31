@@ -1,4 +1,4 @@
-package set1
+package cryptopals
 
 //RepeatingKeyXor xors byte arrays using a key bytearray in a loop
 func RepeatingKeyXor(b1 []byte, b2 []byte) []byte {
