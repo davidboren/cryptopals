@@ -16,8 +16,8 @@ func randBytes(numBytes int) []byte {
 func RandEncrypt(data []byte, blockSize int) ([]byte, bool) {
 	prefixCount := 5 + rand.Int()%5
 	suffixCount := 5 + rand.Int()%5
-	data = AddBytes(randBytes(prefixCount), data)
-	data = AddBytes(data, randBytes(suffixCount))
+	data = append(randBytes(prefixCount), data...)
+	data = append(data, randBytes(suffixCount)...)
 	data = PadBlocks(data, blockSize, byte('\x04'))
 	key := randBytes(16)
 	iv := randBytes(16)

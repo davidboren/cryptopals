@@ -4,19 +4,6 @@ import (
 	"fmt"
 )
 
-// AddBytes combines two bytearrays into one
-func AddBytes(b1 []byte, b2 []byte) []byte {
-
-	newBytes := make([]byte, len(b1)+len(b2))
-	for i := 0; i < len(b1); i++ {
-		newBytes[i] = b1[i]
-	}
-	for i := 0; i < len(b2); i++ {
-		newBytes[len(b1)+i] = b2[i]
-	}
-	return newBytes
-}
-
 // Pad a block with a specific number of padding bytes
 func Pad(block []byte, padding int, padWith byte) []byte {
 	if len(block) == padding {
@@ -43,5 +30,5 @@ func PadBlocks(b []byte, blockSize int, padWith byte) []byte {
 		return b
 	}
 	lastBlockStart := int(len(b)/blockSize) * blockSize
-	return AddBytes(b[:lastBlockStart], Pad(b[lastBlockStart:], blockSize, padWith))
+	return append(b[:lastBlockStart], Pad(b[lastBlockStart:], blockSize, padWith)...)
 }
