@@ -76,7 +76,10 @@ func getDupCount(b []byte, blockSize int) int {
 	totBlocks := int(len(b) / blockSize)
 	for i := 0; i < totBlocks-1; i++ {
 		block := b[i*blockSize : (i+1)*blockSize]
-		for j := i + 1; j < totBlocks; j++ {
+		for j := 0; j < totBlocks-1; j++ {
+			if i == j {
+				continue
+			}
 			compBlock := b[j*blockSize : (j+1)*blockSize]
 			if blocksEqual(block, compBlock) {
 				count++
@@ -91,7 +94,7 @@ func countDupBlocks(arr [][]byte, blockSize int) []int {
 	dupCounts := make([]int, len(arr))
 	for l, b := range arr {
 		if len(b)%blockSize != 0 {
-			panic(fmt.Errorf("Line number '%v' does has numBytes '%v', which is not a multiple of blockSize '%v'", l, len(b), blockSize))
+			panic(fmt.Errorf("Line number '%v' has numBytes '%v', which is not a multiple of blockSize '%v'", l, len(b), blockSize))
 
 		}
 		dupCounts[l] = getDupCount(b, blockSize)
@@ -109,7 +112,6 @@ func getHighestDupIndices(arr [][]byte, blockSize int, numIndices int) ([]int, [
 	ReverseSlice(highest)
 	ReverseSlice(finalCounts)
 	return highest, finalCounts
-
 }
 
 func loadChallenge8() [][]byte {

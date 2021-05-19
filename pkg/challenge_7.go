@@ -9,14 +9,6 @@ func loadChallenge7() []byte {
 	return B64ArrayToBytes(FileToArray("/Users/dboren/dev/go/src/github.com/davidboren/cryptopals/data/set1/challenge_7.txt"))
 }
 
-// Min returns the smaller of x or y.
-func Min(x, y int) int {
-	if x > y {
-		return y
-	}
-	return x
-}
-
 // DecryptAes128Ecb decrypts data with a key using Aes 128Ecb
 func DecryptAes128Ecb(data, key []byte, blockSize int) []byte {
 	cipher, err := aes.NewCipher(key)

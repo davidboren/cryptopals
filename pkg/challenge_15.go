@@ -4,11 +4,9 @@ import (
 	"fmt"
 )
 
-var paddingBytes = []byte{0, 1, 2, 3, 4, 5}
-
-func isPaddingByte(b byte) bool {
-	for _, p := range paddingBytes {
-		if p == b {
+func isPaddingByte(b byte, blockSize int) bool {
+	for i := 1; i <= blockSize; i++ {
+		if byte(i) == b {
 			return true
 		}
 	}
@@ -17,46 +15,33 @@ func isPaddingByte(b byte) bool {
 }
 
 // HasValidPadding validates padding for a byteArray
-func HasValidPadding(b []byte, paddedWith byte) bool {
-	isFinal := true
-	for i := len(b) - 1; i > 0; i-- {
-		if isFinal {
-			if isPaddingByte(b[i]) {
-				if b[i] != paddedWith {
-					return false
-				}
-			} else {
-				isFinal = false
-				if b[i] != paddedWith {
-					return true
-				}
-			}
+func HasValidPadding(b []byte, blockSize int) bool {
+	paddedWith := b[len(b)-1]
+	if !isPaddingByte(paddedWith, blockSize) {
+		return true
+	}
+	requiredPaddings := int(paddedWith)
+	for i := 0; i < requiredPaddings; i++ {
+		if b[len(b)-1-i] != paddedWith {
+			return false
 		}
 	}
 	return true
 }
 
 // StripPadding strips byteArray of a padding byte while validating
-func StripPadding(b []byte, paddedWith byte) []byte {
-	if !HasValidPadding(b, paddedWith) {
-		panic(fmt.Errorf("Bytes are padded with %v, not %v", b[len(b)-1], paddedWith))
+func StripPadding(b []byte, blockSize int) []byte {
+	paddedWith := b[len(b)-1]
+	if !HasValidPadding(b, blockSize) {
+		panic(fmt.Errorf("Bytes are not padded correctly in block"))
 	}
-	isFinal := true
-	for i := len(b) - 1; i > 0; i-- {
-		if isFinal {
-			if !isPaddingByte(b[i]) {
-				isFinal = false
-				if b[i] != paddedWith {
-					return b[:i+1]
-				}
-			}
-		}
+	if !isPaddingByte(paddedWith, blockSize) {
+		return b
 	}
-	return b
+	return b[:len(b)-int(paddedWith)]
 }
 
 // StripPKCS7 strips byteArray of padding byte \x04 while validating
-func StripPKCS7(b []byte) []byte {
-	paddedWith := byte(4)
-	return StripPadding(b, paddedWith)
+func StripPKCS7(b []byte, blockSize int) []byte {
+	return StripPadding(b, blockSize)
 }

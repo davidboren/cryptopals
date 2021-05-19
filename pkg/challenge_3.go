@@ -83,8 +83,8 @@ func GetFreqencyLikelihood(s string) float64 {
 		if !ok {
 			freq = minFrequency
 		}
-		likelihood -= math.Sqrt(math.Pow((float64(count)/float64(len(s)) - freq), 2))
-		// likelihood = likelihood + float64(count)*math.Log(freq)
+		// likelihood -= math.Sqrt(math.Pow((float64(count)/float64(len(s)) - freq), 2))
+		likelihood = likelihood + float64(count)*math.Log(freq)
 
 	}
 	return likelihood
@@ -95,18 +95,14 @@ func MostLikelyXorChar(b []byte) (byte, float64, []byte) {
 	var maxChar byte
 	maxLikelihood := 0.0
 	maxXord := []byte{}
-	isFirst := true
-	for _, char := range hexChars {
-		byteChar := HexToBytes(char)[0]
-		xord := XorSingleByte(b, byteChar)
+	for i := 0; i < 255; i++ {
+		byteChar := byte(i)
+		xord := XorBytes(b, []byte{byteChar})
 		ll := GetFreqencyLikelihood(string(xord))
-		if isFirst || ll > maxLikelihood {
+		if i == 0 || ll > maxLikelihood {
 			maxLikelihood = ll
 			maxChar = byteChar
 			maxXord = xord
-			if isFirst {
-				isFirst = false
-			}
 		}
 	}
 	return maxChar, maxLikelihood, maxXord

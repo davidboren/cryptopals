@@ -1,9 +1,10 @@
 package cryptopals
 
 import (
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCBC(t *testing.T) {
@@ -28,5 +29,7 @@ func TestChallenge10(t *testing.T) {
 
 	decrypted := CBCDecrypt(data, []byte("YELLOW SUBMARINE"), 16, []byte("\x00"))
 	assert.True(t, strings.HasPrefix(string(decrypted), "I'm back and I'm ringin' the bell"))
+	// t.Log(string(decrypted))
+	// t.Fail()
 
 }

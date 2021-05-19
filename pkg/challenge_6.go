@@ -3,6 +3,7 @@ package cryptopals
 import (
 	b64 "encoding/base64"
 	"errors"
+	"fmt"
 	"sort"
 	"strings"
 )
@@ -10,14 +11,6 @@ import (
 type scoredKeySize struct {
 	KeySize int
 	Score   float64
-}
-
-func byteArraysToStrings(byteArr [][]byte) []string {
-	arr := make([]string, len(byteArr))
-	for i, b := range byteArr {
-		arr[i] = string(b)
-	}
-	return arr
 }
 
 func hamming(a, b []byte) (int, error) {
@@ -44,8 +37,39 @@ func hammingStrings(s1, s2 string) (int, error) {
 	return hamming([]byte(s1), []byte(s2))
 }
 
-func findBestKeySizes(a []byte, numBest int) []int {
+func findKeySizeScores(fullArr [][]byte) ([]float64, []int) {
+	scores := []float64{}
+	keySizes := []int{}
+	maxKeySize := 0
+	for _, a := range fullArr {
+		maxKeySize = MaxInt(len(a), maxKeySize)
+	}
+	totalBlocks := 0
+	for keySize := 2; keySize <= 40 && keySize < maxKeySize; keySize++ {
+		scoreTotal := 0
+		for _, a := range fullArr {
+			numBlocks := int(len(a)/keySize) - 1
+			totalBlocks += numBlocks
+			for i := 0; i < numBlocks; i++ {
+				score, err := hamming(a[i*keySize:(i+1)*keySize], a[(i+1)*keySize:(i+2)*keySize])
+				if err != nil {
+					panic(err)
+				}
+				scoreTotal += score
+
+			}
+		}
+		scores = append(scores, float64(scoreTotal)/float64(totalBlocks)/float64(keySize))
+		keySizes = append(keySizes, keySize)
+	}
+	return scores, keySizes
+}
+
+func findBestKeySizes(a [][]byte, numBest int) []int {
 	scores, keySizes := findKeySizeScores(a)
+	if numBest > len(keySizes) {
+		numBest = len(keySizes)
+	}
 	scoredKeySizes := make([]scoredKeySize, len(keySizes))
 	for i, ks := range keySizes {
 		scoredKeySizes[i] = scoredKeySize{KeySize: ks, Score: scores[i]}
@@ -58,26 +82,6 @@ func findBestKeySizes(a []byte, numBest int) []int {
 		finalKeySizes[i] = scoredKeySizes[i].KeySize
 	}
 	return finalKeySizes
-}
-
-func findKeySizeScores(a []byte) ([]float64, []int) {
-	scores := []float64{}
-	keySizes := []int{}
-	for keySize := 2; keySize < 40 && 2*keySize <= len(a); keySize++ {
-		numBlocks := int(len(a)/keySize) - 1
-		scoreTotal := 0
-		for i := 0; i < numBlocks; i++ {
-			score, err := hamming(a[i*keySize:(i+1)*keySize], a[(i+1)*keySize:(i+2)*keySize])
-			if err != nil {
-				panic(err)
-			}
-			scoreTotal += score
-
-		}
-		scores = append(scores, float64(scoreTotal)/float64(numBlocks)/float64(keySize))
-		keySizes = append(keySizes, keySize)
-	}
-	return scores, keySizes
 }
 
 // B64ArrayToBytes Converts array of b64 encoded strings to array bytes
@@ -94,30 +98,41 @@ func loadChallenge6() []byte {
 }
 
 // GetRepeatingXorCandidates returns a list of likely repeating xor keys and their scores
-func GetRepeatingXorCandidates(arr []byte, numKeySizes int) ([][]byte, []float64) {
+func GetRepeatingXorCandidates(fullArr [][]byte, numKeySizes int) ([][]byte, []float64) {
 	xorKeyList := [][]byte{}
 	xorKeyScores := []float64{}
-	for _, keySize := range findBestKeySizes(arr, numKeySizes) {
+	if numKeySizes > len(fullArr[0]) {
+		numKeySizes = len(fullArr[0])
+	}
+	for _, keySize := range findBestKeySizes(fullArr, numKeySizes) {
 		xorKey := []byte{}
 		for j := 0; j < keySize; j++ {
 			arr2 := []byte{}
-			k := j
-			for k < len(arr) {
-				arr2 = append(arr2, arr[k])
-				k += keySize
+			for _, arr := range fullArr {
+				k := j
+				for k < len(arr) {
+					arr2 = append(arr2, arr[k])
+					k += keySize
+				}
+			}
+			if len(arr2) == 0 {
+				panic(errors.New(fmt.Sprintf("\narr2: %v\nkeySize: %v", arr2, keySize)))
 			}
 			char, _, _ := MostLikelyXorChar(arr2)
 			xorKey = append(xorKey, char)
 		}
 		xorKeyList = append(xorKeyList, xorKey)
-		xorKeyScores = append(xorKeyScores, GetFreqencyLikelihood(string(RepeatingKeyXor(arr, xorKey))))
+		xordArr := []byte{}
+		for _, arr := range fullArr {
+			xordArr = append(xordArr, RepeatingKeyXor(arr, xorKey)...)
+		}
+		xorKeyScores = append(xorKeyScores, GetFreqencyLikelihood(string(xordArr)))
 	}
 	return xorKeyList, xorKeyScores
-
 }
 
-// DecodeRepeatingXor decode Xor using best score
-func DecodeRepeatingXor(arr []byte, numKeySizes int) ([]byte, []byte) {
+// BreakRepeatingXor decodes Xor using best score from a list of bytelists
+func BreakRepeatingXorArrays(arr [][]byte, numKeySizes int) ([]byte, [][]byte) {
 	var bestXorKey []byte
 	var maxScore float64
 	xorKeyList, xorKeyScores := GetRepeatingXorCandidates(arr, numKeySizes)
@@ -129,5 +144,15 @@ func DecodeRepeatingXor(arr []byte, numKeySizes int) ([]byte, []byte) {
 			isFirst = false
 		}
 	}
-	return bestXorKey, RepeatingKeyXor(arr, bestXorKey)
+	xordResult := [][]byte{}
+	for _, subArr := range arr {
+		xordResult = append(xordResult, RepeatingKeyXor(subArr, bestXorKey))
+	}
+	return bestXorKey, xordResult
+}
+
+// BreakRepeatingXor decodes Xor using best score from a single bytelist
+func BreakRepeatingXor(arr []byte, numKeySizes int) ([]byte, []byte) {
+	bestXorKey, xoredResult := BreakRepeatingXorArrays([][]byte{arr}, numKeySizes)
+	return bestXorKey, xoredResult[0]
 }

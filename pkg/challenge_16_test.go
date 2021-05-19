@@ -1,9 +1,10 @@
 package cryptopals
 
 import (
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestChallenge16Encryption(t *testing.T) {
@@ -18,6 +19,7 @@ func TestChallenge16Prefix(t *testing.T) {
 	blockSize := getBlockSize(e, g)
 	assert.Equal(t, 16, blockSize)
 	assert.Equal(t, len(e.GetPrefix()), getPrefixLength(e, g, blockSize))
+	// t.Fail()
 }
 
 func TestChallenge16Suffix(t *testing.T) {
@@ -31,4 +33,6 @@ func TestChallenge16Stuff3(t *testing.T) {
 	e := challenge16Encryptor{}
 	encrypted := crackChallenge16(e, StringGenerator{})
 	assert.True(t, isAdmin(string(encrypted)))
+	// t.Log(string(CBCDecryptConsistent(encrypted)))
+	// t.Fail()
 }

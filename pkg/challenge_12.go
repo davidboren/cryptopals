@@ -4,6 +4,7 @@ import (
 	b64 "encoding/base64"
 	"errors"
 	"fmt"
+
 	// "math"
 	"math/rand"
 	"strings"
@@ -74,7 +75,7 @@ func getBlockSize(c ConsistentEncryptor, d DataGenerator) int {
 	for i := minSize; i <= 128; i++ {
 		data, _ := d.Generate(i, 0)
 		encrypted := c.Encrypt(data)
-		if len(encrypted) > lastEncryptedSize+1 && lastEncryptedSize != 0 {
+		if len(encrypted) > lastEncryptedSize+1 && i != minSize {
 			blockSize = len(encrypted) - lastEncryptedSize
 			break
 		}
@@ -95,6 +96,11 @@ func getPrefixLength(c ConsistentEncryptor, d DataGenerator, blockSize int) int 
 	}
 	encryptedData := c.Encrypt(data)
 	encryptedData2 := c.Encrypt(data2)
+	// d1_n = data1 of length n
+	// d2_n = data2 of length n
+	// p_m = prefix of length m
+	// s_o = prefix of length o
+	// encrypt(d1_n) -> p_m + e1_n + s_o + padding
 	for j := 0; j < len(encryptedData); j += blockSize {
 		if !blocksEqual(encryptedData[j:j+blockSize], encryptedData2[j:j+blockSize]) {
 			for k := minSize; k <= blockSize+minSize; k++ {
@@ -185,7 +191,7 @@ type challenge12Encryptor struct{}
 type StringGenerator struct{}
 
 func (c challenge12Encryptor) GetPrefix() []byte {
-	return []byte("AAAAAA1234")
+	return []byte("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA1234")
 }
 
 func (c challenge12Encryptor) GetSuffix() []byte {

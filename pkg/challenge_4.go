@@ -33,15 +33,13 @@ func MostLikelyXorLine() (int, byte, float64, string) {
 	var bestLineNumber int
 	var bestLineOutput string
 	var bestLineChar byte
-	isFirst := true
 	for i, line := range loadChallenge4() {
 		byteChar, score, xordLine := MostLikelyXorChar(HexToBytes(line))
-		if isFirst || score > maxScore {
+		if i == 0 || score > maxScore {
 			maxScore = score
 			bestLineNumber = i
 			bestLineOutput = string(xordLine)
 			bestLineChar = byteChar
-			isFirst = false
 		}
 	}
 	return bestLineNumber, bestLineChar, maxScore, bestLineOutput
