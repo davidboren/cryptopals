@@ -3,7 +3,6 @@ package cryptopals
 import (
 	b64 "encoding/base64"
 	"errors"
-	"fmt"
 	"sort"
 	"strings"
 )
@@ -44,22 +43,30 @@ func findKeySizeScores(fullArr [][]byte) ([]float64, []int) {
 	for _, a := range fullArr {
 		maxKeySize = MaxInt(len(a), maxKeySize)
 	}
-	totalBlocks := 0
-	for keySize := 2; keySize <= 40 && keySize < maxKeySize; keySize++ {
+	for keySize := 2; keySize <= 32 && keySize < maxKeySize; keySize++ {
 		scoreTotal := 0
+		numComparisons := 0
+		allBlocks := [][]byte{}
 		for _, a := range fullArr {
-			numBlocks := int(len(a)/keySize) - 1
-			totalBlocks += numBlocks
-			for i := 0; i < numBlocks; i++ {
-				score, err := hamming(a[i*keySize:(i+1)*keySize], a[(i+1)*keySize:(i+2)*keySize])
+			for blockStart, blockEnd := 0, keySize; blockStart < len(a); blockStart, blockEnd = blockStart+keySize, blockEnd+keySize {
+				if blockEnd >= len(a) {
+					break
+				}
+				allBlocks = append(allBlocks, a[blockStart:blockEnd])
+			}
+		}
+		for i := 0; i < len(allBlocks)-1; i++ {
+			for j := i + 1; j < len(allBlocks); j++ {
+				score, err := hamming(allBlocks[i], allBlocks[j])
 				if err != nil {
 					panic(err)
 				}
-				scoreTotal += score
+				scoreTotal += score / keySize
+				numComparisons++
 
 			}
 		}
-		scores = append(scores, float64(scoreTotal)/float64(totalBlocks)/float64(keySize))
+		scores = append(scores, float64(scoreTotal)/float64(numComparisons))
 		keySizes = append(keySizes, keySize)
 	}
 	return scores, keySizes
@@ -101,22 +108,25 @@ func loadChallenge6() []byte {
 func GetRepeatingXorCandidates(fullArr [][]byte, numKeySizes int) ([][]byte, []float64) {
 	xorKeyList := [][]byte{}
 	xorKeyScores := []float64{}
-	if numKeySizes > len(fullArr[0]) {
-		numKeySizes = len(fullArr[0])
+	// if numKeySizes > len(fullArr[0]) {
+	// 	numKeySizes = len(fullArr[0])
+	// }
+	maxLen := 0
+	for _, arr := range fullArr {
+		if len(arr) > maxLen {
+			maxLen = len(arr)
+		}
 	}
 	for _, keySize := range findBestKeySizes(fullArr, numKeySizes) {
 		xorKey := []byte{}
 		for j := 0; j < keySize; j++ {
 			arr2 := []byte{}
-			for _, arr := range fullArr {
-				k := j
-				for k < len(arr) {
-					arr2 = append(arr2, arr[k])
-					k += keySize
+			for k := j; k < maxLen; k += keySize {
+				for _, arr := range fullArr {
+					if k < len(arr) {
+						arr2 = append(arr2, arr[k])
+					}
 				}
-			}
-			if len(arr2) == 0 {
-				panic(errors.New(fmt.Sprintf("\narr2: %v\nkeySize: %v", arr2, keySize)))
 			}
 			char, _, _ := MostLikelyXorChar(arr2)
 			xorKey = append(xorKey, char)

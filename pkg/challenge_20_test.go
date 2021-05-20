@@ -1,21 +1,30 @@
 package cryptopals
 
 import (
+	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestChallenge20(t *testing.T) {
 	challenge20 := challenge20AsStrings()
 	encrypted20 := loadEncryptedChallenge20()
-	key, decrypted := BreakRepeatingXorArrays(encrypted20, 30)
+	key, decrypted := BreakRepeatingXorArrays(encrypted20, 8)
 	t.Logf("Key: %v", string(key))
+	t.Logf("Key: %v", []byte(string(key)))
+	t.Logf("KeyLength: %v", len(key))
+	allMatching := true
 	for i, d := range decrypted {
-		if challenge20[i] == string(d) {
+		real := strings.ToUpper(challenge20[i])
+		decrypted := strings.ToUpper(string(d))
+		if real == decrypted {
 			t.Logf("\nMatching: %v", challenge20[i])
 		} else {
 			t.Logf("\nReal: %v\nDecrypted: %v", challenge20[i], string(d))
+			allMatching = false
 		}
-		// assert.Equal(t, challenge19[i], string(d))
 	}
-	// t.Fail()
+	t.Logf("\nAllMatching: %v", allMatching)
+	assert.True(t, allMatching)
 }

@@ -12,8 +12,8 @@ func TestHamming(t *testing.T) {
 	assert.Equal(t, 37, dist)
 }
 
-func TestFullDecode(t *testing.T) {
-	bestXorKey, decodedBytes := BreakRepeatingXor(loadChallenge6(), 10)
+func TestFullDecode6(t *testing.T) {
+	bestXorKey, decodedBytes := BreakRepeatingXor(loadChallenge6(), 32)
 	assert.Equal(t, string(bestXorKey), "Terminator X: Bring the noise")
 	assert.True(t, strings.HasPrefix(string(decodedBytes), "I'm back and I'm ringin' the bell"))
 	assert.True(t, strings.HasSuffix(string(decodedBytes), "Play that funky music \n"))
