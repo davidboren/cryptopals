@@ -28,7 +28,7 @@ func loadEncryptedChallenge20() [][]byte {
 	for _, arr := range c20 {
 		fullArr = append(
 			fullArr,
-			encryptCTR(arr, challenge19Encryptor{}),
+			encryptCTR(arr, challenge19Encryptor{16}),
 		)
 	}
 	return fullArr

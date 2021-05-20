@@ -4,11 +4,13 @@ import (
 	b64 "encoding/base64"
 )
 
-type challenge19Encryptor struct{}
+type challenge19Encryptor struct {
+	numBytes int
+}
 
-func (c challenge19Encryptor) GetEncryptedNonceBytes(n uint64) []byte {
+func (c challenge19Encryptor) GetEncryptedNonceBytes() []byte {
 	secret := getSecret()
-	return EncryptAes128Ecb(GetNonceBytes(n), secret.consistentKey, 16)
+	return EncryptAes128Ecb(GetNonceBytes(uint64(0)), secret.consistentKey, c.numBytes)
 }
 
 func loadChallenge19() [][]byte {
@@ -35,7 +37,7 @@ func loadEncryptedChallenge19() [][]byte {
 	for _, arr := range c19 {
 		fullArr = append(
 			fullArr,
-			encryptCTR(arr, challenge19Encryptor{}),
+			encryptCTR(arr, challenge19Encryptor{16}),
 		)
 	}
 	return fullArr

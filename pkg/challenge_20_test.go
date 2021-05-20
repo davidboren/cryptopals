@@ -10,7 +10,7 @@ import (
 func TestChallenge20(t *testing.T) {
 	challenge20 := challenge20AsStrings()
 	encrypted20 := loadEncryptedChallenge20()
-	key, decrypted := BreakRepeatingXorArrays(encrypted20, 8)
+	key, decrypted := BreakRepeatingXorArrays(encrypted20, 32)
 	t.Logf("Key: %v", string(key))
 	t.Logf("Key: %v", []byte(string(key)))
 	t.Logf("KeyLength: %v", len(key))

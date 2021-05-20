@@ -1,10 +1,10 @@
 package cryptopals
 
 //RepeatingKeyXor xors byte arrays using a key bytearray in a loop
-func RepeatingKeyXor(b1 []byte, b2 []byte) []byte {
+func RepeatingKeyXor(b1 []byte, key []byte) []byte {
 	xord := make([]byte, len(b1))
 	for i, b := range b1 {
-		xord[i] = b ^ b2[i%len(b2)]
+		xord[i] = b ^ key[i%len(key)]
 	}
 	return xord
 }
